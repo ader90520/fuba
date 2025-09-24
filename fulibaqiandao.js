@@ -1,193 +1,136 @@
-// 名称: 福利吧论坛自动签到
-// 描述: 自动检测可用域名并执行签到
-// 作者: 基于青龙脚本转换
-// 日期: 2025-08-17
+// 福利吧签到脚本 for Quantumult X
+// 支持多账号，请在BoxJS或脚本内配置cookie和用户名
+const cookieName = '福利吧签到'
+const signurlKey = 'fuba_sign_url'
+const cookieKey = 'fuba_cookie'
+const usernameKey = 'fuba_username'
+const myCookie = $prefs.valueForKey(cookieKey)
+const myUsername = $prefs.valueForKey(usernameKey)
 
-const cookieName = '福利吧签到';
-const cookieKey = 'fuba_cookie';
-const usernameKey = 'fuba_username';
-
-// 获取存储的数据
-const getCookie = $persistentStore.read(cookieKey);
-const getUsername = $persistentStore.read(usernameKey);
-
-if (!getCookie || !getUsername) {
-  $notification.post('❌ 配置不完整', '请设置Cookie和用户名', '检查持久化存储');
-  $done();
+if (!$task || !myCookie || !myUsername) {
+    $notify(cookieName, "错误", "配置信息不完整或环境不支持")
+    $done()
 }
 
-// 可用域名列表
-const domains = [
-  'www.wnflb2023.com',
-  'www.wnflb00.com', 
-  'www.wnflb99.com'
-];
+// 可能的域名列表
+const allUrls = ['www.wnflb2023.com', 'www.wnflb00.com', 'www.wnflb99.com']
+let flbUrl = null
 
-// 查找可用域名
-findAvailableDomain();
+;(async () => {
+    try {
+        // 1. 检测可用的域名
+        for (let url of allUrls) {
+            const options = {
+                url: `https://${url}/forum.php?mobile=no`,
+                headers: {
+                    'Cookie': myCookie,
+                    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1'
+                },
+                timeout: 10000
+            }
+            
+            try {
+                const response = await request(options, false) // 不自动处理错误
+                if (response.statusCode === 200) {
+                    flbUrl = url
+                    console.log(`检测到可用域名: ${flbUrl}`)
+                    break
+                }
+            } catch (e) {
+                console.log(`域名 ${url} 不可用: ${e}`)
+            }
+        }
 
-function findAvailableDomain() {
-  let checkedCount = 0;
-  
-  domains.forEach(domain => {
-    checkDomain(domain, (isAvailable) => {
-      checkedCount++;
-      if (isAvailable) {
-        // 找到可用域名，开始签到流程
-        startSignProcess(domain);
-      } else if (checkedCount === domains.length) {
-        // 所有域名都不可用
-        $notification.post('❌ 网络异常', '所有域名均无法访问', '请检查网络');
-        $done();
-      }
-    });
-  });
-}
+        if (!flbUrl) {
+            throw new Error('所有域名均无法访问，请检查网络或网站状态')
+        }
 
-function checkDomain(domain, callback) {
-  const testUrl = `https://${domain}/forum.php`;
-  
-  $httpClient.get({
-    url: testUrl,
-    headers: {
-      'Cookie': getCookie,
-      'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148'
-    }
-  }, (error, response, data) => {
-    if (error || response.status !== 200) {
-      callback(false);
-    } else {
-      callback(true);
-    }
-  });
-}
+        // 2. 访问PC主页验证Cookie并获取用户名
+        const userOptions = {
+            url: `https://${flbUrl}/forum.php?mobile=no`,
+            headers: {
+                'Cookie': myCookie,
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+            }
+        }
 
-function startSignProcess(domain) {
-  console.log(`使用域名: ${domain}`);
-  
-  // 第一步：访问主页获取用户信息和签到链接
-  const forumUrl = `https://${domain}/forum.php?mobile=no`;
-  
-  $httpClient.get({
-    url: forumUrl,
-    headers: {
-      'Cookie': getCookie,
-      'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-    }
-  }, (error, response, data) => {
-    if (error) {
-      $notification.post('❌ 网络错误', '访问论坛失败', error);
-      $done();
-      return;
-    }
-    
-    if (response.status !== 200) {
-      $notification.post(`❌ HTTP ${response.status}`, '论坛访问异常', '');
-      $done();
-      return;
-    }
-    
-    // 验证用户名
-    const usernameMatch = data.match(/title="访问我的空间">(.*?)<\/a>/);
-    if (!usernameMatch) {
-      $notification.post('❌ Cookie失效', '未检测到登录状态', '请重新登录获取Cookie');
-      $done();
-      return;
-    }
-    
-    const currentUsername = usernameMatch[1];
-    console.log(`登录用户: ${currentUsername}`);
-    
-    if (currentUsername !== getUsername) {
-      $notification.post('❌ 用户不匹配', `当前用户: ${currentUsername}`, `配置用户: ${getUsername}`);
-      $done();
-      return;
-    }
-    
-    // 提取签到链接
-    const signFuncMatch = data.match(/}function fx_checkin(.*?);/);
-    if (!signFuncMatch) {
-      $notification.post('❌ 解析失败', '未找到签到函数', '论坛结构可能变更');
-      $done();
-      return;
-    }
-    
-    let signUrl = signFuncMatch[1];
-    signUrl = signUrl.substring(47, signUrl.length - 2);
-    console.log(`签到URL: ${signUrl}`);
-    
-    // 执行签到
-    executeSign(domain, signUrl, data);
-  });
-}
+        const userInfo = await request(userOptions)
+        const userNameMatch = userInfo.match(/title="访问我的空间">(.*?)<\/a>/)
+        
+        if (!userNameMatch) {
+            throw new Error('Cookie可能已失效，无法获取用户名')
+        }
 
-function executeSign(domain, signUrl, originalData) {
-  const fullSignUrl = `https://${domain}/${signUrl}`;
-  
-  $httpClient.get({
-    url: fullSignUrl,
-    headers: {
-      'Cookie': getCookie,
-      'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
-      'Referer': `https://${domain}/forum.php`
-    }
-  }, (error, response, data) => {
-    if (error) {
-      $notification.post('❌ 签到请求失败', '网络错误', error);
-      $done();
-      return;
-    }
-    
-    // 重新获取页面检查签到结果
-    checkSignResult(domain);
-  });
-}
+        const userName = userNameMatch[1]
+        console.log(`登录用户名为：${userName}`)
+        console.log(`环境用户名为：${myUsername}`)
 
-function checkSignResult(domain) {
-  const forumUrl = `https://${domain}/forum.php?mobile=no`;
-  
-  $httpClient.get({
-    url: forumUrl,
-    headers: {
-      'Cookie': getCookie,
-      'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148'
-    }
-  }, (error, response, data) => {
-    if (error) {
-      $notification.post('❌ 结果检查失败', '网络错误', error);
-      $done();
-      return;
-    }
-    
-    // 解析结果
-    parseFinalResult(data);
-  });
-}
+        if (userName !== myUsername) {
+            throw new Error('Cookie失效：用户名不匹配')
+        }
 
-function parseFinalResult(data) {
-  try {
-    // 查找签到提示信息
-    const signTipMatch = data.match(/<div class="tip_c">(.*?)<\/div>/);
-    const moneyMatch = data.match(/<a.*?id="extcreditmenu".*?>(.*?)<\/a>/);
-    
-    if (signTipMatch && moneyMatch) {
-      const signMessage = signTipMatch[1].trim();
-      const moneyInfo = moneyMatch[1].trim();
-      
-      const finalMessage = `${signMessage}，当前${moneyInfo}`;
-      $notification.post('✅ 福利吧签到成功', finalMessage, '');
-    } else {
-      // 尝试其他可能的消息格式
-      if (data.includes('签到') || data.includes('奖励')) {
-        $notification.post('✅ 签到完成', '具体信息请查看日志', '');
-      } else {
-        $notification.post('⚠️ 签到状态未知', '请手动检查', '');
-      }
+        // 3. 获取签到链接
+        const signUrlMatch = userInfo.match(/}function fx_checkin(.*?);/)
+        if (!signUrlMatch) {
+            throw new Error('无法提取签到链接')
+        }
+
+        let signUrl = signUrlMatch[1]
+        signUrl = signUrl.substring(47, signUrl.length - 2)
+        console.log(`签到链接: ${signUrl}`)
+
+        // 4. 执行签到
+        const signOptions = {
+            url: `https://${flbUrl}/${signUrl}`,
+            headers: {
+                'Cookie': myCookie,
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+            }
+        }
+
+        await request(signOptions)
+
+        // 5. 获取签到后的积分信息
+        const finalUserInfo = await request(userOptions)
+        const currentMoneyMatch = finalUserInfo.match(/<a.*? id="extcreditmenu".*?>(.*?)<\/a>/)
+        const singDayMatch = finalUserInfo.match(/<div class="tip_c">(.*?)<\/div>/)
+
+        if (currentMoneyMatch && singDayMatch) {
+            const currentMoney = currentMoneyMatch[1]
+            const singDay = singDayMatch[1]
+            const logInfo = `${singDay}当前${currentMoney}`
+            
+            $notify(cookieName, `签到成功`, logInfo)
+            console.log(logInfo)
+        } else {
+            throw new Error('签到可能成功，但无法解析积分信息')
+        }
+
+    } catch (error) {
+        $notify(cookieName, '签到失败', error.message || error)
+        console.error(`签到失败: ${error}`)
+    } finally {
+        $done()
     }
-  } catch (e) {
-    $notification.post('❌ 结果解析错误', e.message, '');
-  }
-  
-  $done();
+})()
+
+// 通用请求函数
+function request(options, throwError = true) {
+    return new Promise((resolve, reject) => {
+        $task.fetch(options).then(response => {
+            if (response.statusCode === 200) {
+                resolve(response.body)
+            } else if (throwError) {
+                reject(`HTTP错误: ${response.statusCode}`)
+            } else {
+                resolve(response.body)
+            }
+        }, reason => {
+            if (throwError) {
+                reject(reason.error)
+            } else {
+                resolve(null)
+            }
+        })
+    })
 }
