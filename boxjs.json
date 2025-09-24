@@ -1,0 +1,23 @@
+{
+  "name": "福利吧签到",
+  "description": "福利吧每日自动签到",
+  "author": "Your Name",
+  "version": "1.0.0",
+  "platforms": ["QX", "Surge", "Loon"],
+  "settings": [
+    {
+      "id": "fuba_cookie",
+      "name": "福利吧Cookie",
+      "val": "",
+      "type": "textarea",
+      "placeholder": "请输入您的福利吧Cookie"
+    },
+    {
+      "id": "fuba_username",
+      "name": "福利吧用户名",
+      "val": "",
+      "type": "input",
+      "placeholder": "请输入您的福利吧用户名"
+    }
+  ]
+}
