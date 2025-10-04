@@ -1,23 +1,84 @@
 {
+  "id": "Fuba_Sign",
   "name": "福利吧签到",
-  "description": "福利吧每日自动签到",
-  "author": "Your Name",
-  "version": "1.0.0",
-  "platforms": ["QX", "Surge", "Loon"],
+  "author": "@YourName",
+  "repo": "",
+  "icon": "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
+  "icons": [
+    "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
+    "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png"
+  ],
+  "keys": [
+    "fuba_cookie",
+    "fuba_username",
+    "fuba_domain_index"
+  ],
   "settings": [
+    {
+      "id": "is_debug",
+      "name": "开启调试模式",
+      "val": false,
+      "type": "boolean",
+      "desc": "默认关闭"
+    },
+    {
+      "id": "fuba_domain_index",
+      "name": "优先域名选择",
+      "val": "0",
+      "type": "select",
+      "options": [
+        {
+          "name": "自动检测",
+          "val": "0"
+        },
+        {
+          "name": "wnflb2023.com",
+          "val": "1"
+        },
+        {
+          "name": "wnflb00.com", 
+          "val": "2"
+        },
+        {
+          "name": "wnflb99.com",
+          "val": "3"
+        }
+      ],
+      "desc": "强制使用指定域名（建议保持自动检测）"
+    },
     {
       "id": "fuba_cookie",
       "name": "福利吧Cookie",
       "val": "",
       "type": "textarea",
-      "placeholder": "请输入您的福利吧Cookie"
+      "autoGrow": true,
+      "placeholder": "请输入登录福利吧后获取的Cookie值",
+      "desc": "获取方法：登录福利吧后按F12打开开发者工具，复制Network请求中的Cookie值"
     },
     {
-      "id": "fuba_username",
+      "id": "fuba_username", 
       "name": "福利吧用户名",
       "val": "",
-      "type": "input",
-      "placeholder": "请输入您的福利吧用户名"
+      "type": "text",
+      "desc": "请输入您的福利吧登录用户名"
+    },
+    {
+      "id": "@fuba.notify",
+      "name": "开启签到通知",
+      "val": true,
+      "type": "boolean",
+      "desc": "默认开启签到结果通知"
     }
+  ],
+  "scripts": [
+    {
+      "name": "福利吧签到",
+      "description": "每日自动签到福利吧",
+      "cron": "30 8 * * *"
+    }
+  ],
+  "descs_html": [
+    "<p style='margin-left:20px;'>福利吧自动签到脚本</p >",
+    "<p style='margin-left:20px; color: orange;'>请确保Cookie和用户名填写正确，否则会导致签到失败</p >"
   ]
 }
