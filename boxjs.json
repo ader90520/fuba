@@ -1,8 +1,8 @@
 {
-  "id": "Fuba_Sign",
+  "id": "fuba_sign",
   "name": "福利吧签到",
-  "author": "@YourName",
-  "repo": "",
+  "author": "@ader90520",
+  "repo": "https://github.com/ader90520/fulibaqiandao",
   "icon": "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
   "icons": [
     "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
@@ -11,40 +11,29 @@
   "keys": [
     "fuba_cookie",
     "fuba_username",
-    "fuba_domain_index"
+    "fuba_domain"
   ],
   "settings": [
     {
-      "id": "is_debug",
-      "name": "开启调试模式",
-      "val": false,
-      "type": "boolean",
-      "desc": "默认关闭"
-    },
-    {
-      "id": "fuba_domain_index",
-      "name": "优先域名选择",
-      "val": "0",
+      "id": "fuba_domain",
+      "name": "福利吧域名",
+      "val": "www.wnflb2023.com",
       "type": "select",
       "options": [
         {
-          "name": "自动检测",
-          "val": "0"
-        },
-        {
           "name": "wnflb2023.com",
-          "val": "1"
+          "val": "www.wnflb2023.com"
         },
         {
-          "name": "wnflb00.com", 
-          "val": "2"
+          "name": "wnflb00.com",
+          "val": "www.wnflb00.com"
         },
         {
           "name": "wnflb99.com",
-          "val": "3"
+          "val": "www.wnflb99.com"
         }
       ],
-      "desc": "强制使用指定域名（建议保持自动检测）"
+      "desc": "选择福利吧访问域名"
     },
     {
       "id": "fuba_cookie",
@@ -56,29 +45,30 @@
       "desc": "获取方法：登录福利吧后按F12打开开发者工具，复制Network请求中的Cookie值"
     },
     {
-      "id": "fuba_username", 
+      "id": "fuba_username",
       "name": "福利吧用户名",
       "val": "",
       "type": "text",
-      "desc": "请输入您的福利吧登录用户名"
-    },
-    {
-      "id": "@fuba.notify",
-      "name": "开启签到通知",
-      "val": true,
-      "type": "boolean",
-      "desc": "默认开启签到结果通知"
+      "placeholder": "请输入您的福利吧登录用户名",
+      "desc": "用于验证Cookie有效性"
     }
   ],
   "scripts": [
     {
       "name": "福利吧签到",
-      "description": "每日自动签到福利吧",
+      "description": "每日自动签到福利吧，获取积分",
       "cron": "30 8 * * *"
     }
   ],
   "descs_html": [
     "<p style='margin-left:20px;'>福利吧自动签到脚本</p >",
-    "<p style='margin-left:20px; color: orange;'>请确保Cookie和用户名填写正确，否则会导致签到失败</p >"
+    "<p style='margin-left:20px; color: orange;'>请确保Cookie和用户名填写正确，否则会导致签到失败</p >",
+    "<p style='margin-left:20px;'>使用步骤：</p >",
+    "<ol style='margin-left:40px;'>",
+    "<li>登录福利吧网站</li>",
+    "<li>按F12打开开发者工具</li>",
+    "<li>复制Network请求中的Cookie</li>",
+    "<li>在此处填写Cookie和用户名</li>",
+    "</ol>"
   ]
 }
