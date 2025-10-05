@@ -4,13 +4,13 @@
   "description": "福利吧每日自动签到脚本，兼容BoxJs以及Quantumult X",
   "author": "@ader90520",
   "icon": "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
-  "repo": "https://github.com/ader90520/fulibaqiandao",
+  "repo": "https://github.com/ader90520/fuba",
   "apps": [
     {
       "id": "fuba_sign",
       "name": "福利吧签到",
       "author": "@ader90520", 
-      "repo": "https://github.com/ader90520/fulibaqiandao",
+      "repo": "https://github.com/ader90520/fuba",
       "icons": [
         "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
         "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png"
@@ -81,3 +81,4 @@
     }
   ]
 }
+
