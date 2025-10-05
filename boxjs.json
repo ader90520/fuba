@@ -1,4 +1,10 @@
-
+{
+    "id": "SliverkissCheckin.sub",
+    "name": "签到脚本订阅",
+    "author": "@Sliverkiss",
+    "icon": "https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/icon/sakura.png",
+    "repo": "",
+    "apps": [
     {
       "id": "Leiyiyan_Cfmoto",
       "name": "春风摩托",
@@ -89,3 +95,4 @@
         }
       ]
     }
+
