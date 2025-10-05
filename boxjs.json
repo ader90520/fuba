@@ -1,3 +1,94 @@
+
+    {
+      "id": "Leiyiyan_Cfmoto",
+      "name": "春风摩托",
+      "author": "@leiyiyan",
+      "repo": "",
+      "icons": [
+        "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/cfmoto.png",
+        "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/cfmoto.png"
+      ],
+      "keys": [
+        "is_debug",
+        "cfmoto_data"
+      ],
+      "settings": [
+        {
+          "id": "is_debug",
+          "name": "开启调试模式",
+          "val": false,
+          "type": "boolean",
+          "desc": "默认关闭"
+        },{
+          "id": "cfmoto_data",
+          "name": "春风摩托Cookie数据",
+          "val": null,
+          "type": "textarea",
+          "autoGrow": true,
+          "desc": "春风摩托Cookie数据"
+        }
+      ]
+    },
+    {
+      "id": "Leiyiyan_Zeeho",
+      "name": "极核-ZEEHO",
+      "author": "@leiyiyan",
+      "repo": "",
+      "icons": [
+        "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/zeeho.png",
+        "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/zeeho.png"
+      ],
+      "keys": [
+        "is_debug",
+        "zeeho_data"
+      ],
+      "settings": [
+        {
+          "id": "is_debug",
+          "name": "开启调试模式",
+          "val": false,
+          "type": "boolean",
+          "desc": "默认关闭"
+        },{
+          "id": "zeeho_data",
+          "name": "极核Cookie数据",
+          "val": null,
+          "type": "textarea",
+          "autoGrow": true,
+          "desc": "极核Cookie数据"
+        }
+      ]
+    },
+    {
+      "id": "Leiyiyan_Xingma",
+      "name": "星妈优选小程序",
+      "author": "@leiyiyan",
+      "repo": "",
+      "icons": [
+        "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/xmyx.png",
+        "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/xmyx.png"
+      ],
+      "keys": [
+        "is_debug",
+        "xmyx_data"
+      ],
+      "settings": [
+        {
+          "id": "is_debug",
+          "name": "开启调试模式",
+          "val": false,
+          "type": "boolean",
+          "desc": "默认关闭"
+        },{
+          "id": "xmyx_data",
+          "name": "星妈优选小程序Token",
+          "val": null,
+          "type": "textarea",
+          "autoGrow": true,
+          "desc": "星妈优选小程序Token"
+        }
+      ]
+    },
 {
   "id": "fuba_sign",
   "name": "福利吧签到",
@@ -72,3 +163,4 @@
     "</ol>"
   ]
 }
+
