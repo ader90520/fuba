@@ -4,13 +4,13 @@
   "description": "福利吧每日自动签到脚本，兼容BoxJs以及Quantumult X",
   "author": "@ader90520",
   "icon": "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
-  "repo": "https://github.com/ader90520/fuba",
+  "repo": "https://github.com/ader90520/fulibaqiandao",
   "apps": [
     {
       "id": "fuba_sign",
       "name": "福利吧签到",
       "author": "@ader90520", 
-      "repo": "https://github.com/ader90520/fuba",
+      "repo": "https://github.com/ader90520/fulibaqiandao",
       "icons": [
         "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
         "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png"
@@ -40,7 +40,7 @@
               "val": "www.wnflb99.com"
             }
           ],
-          "desc": "选择福利吧访问域名"
+          "desc": "选择福利吧访问域名，如果某个域名无法访问，请尝试其他域名"
         },
         {
           "id": "fuba_cookie",
@@ -48,16 +48,23 @@
           "val": "",
           "type": "textarea",
           "autoGrow": true,
-          "placeholder": "请输入登录福利吧后获取的Cookie值",
-          "desc": "获取方法：登录福利吧后按F12打开开发者工具，复制Network请求中的Cookie值[citation:4]"
+          "placeholder": "请按照下方指引获取并粘贴Cookie值",
+          "desc": "Cookie获取方法详见下方详细说明"
         },
         {
           "id": "fuba_username",
           "name": "福利吧用户名",
           "val": "", 
           "type": "text",
-          "placeholder": "请输入您的福利吧登录用户名",
-          "desc": "用于验证Cookie有效性"
+          "placeholder": "请输入您在福利吧的登录用户名",
+          "desc": "用于验证Cookie有效性，必须与Cookie对应的账号一致"
+        },
+        {
+          "id": "@fuba.helper",
+          "name": "一键获取Cookie助手",
+          "val": false,
+          "type": "boolean",
+          "desc": "开启后可在浏览器控制台运行脚本自动获取Cookie（实验功能）"
         }
       ],
       "scripts": [
@@ -68,15 +75,55 @@
         }
       ],
       "descs_html": [
-        "<p style='margin-left:20px;'>福利吧自动签到脚本</p >",
-        "<p style='margin-left:20px; color: orange;'>请确保Cookie和用户名填写正确，否则会导致签到失败</p >",
-        "<p style='margin-left:20px;'>使用步骤：</p >",
+        "<h3 style='margin-left:20px;'>福利吧自动签到脚本</h3>",
+        "<p style='margin-left:20px; color: orange;'><strong>重要：请确保Cookie和用户名填写正确，否则会导致签到失败</strong></p>",
+        
+        "<h4 style='margin-left:20px;'>方法一：手动获取Cookie（推荐）</h4>",
         "<ol style='margin-left:40px;'>",
-        "<li>登录福利吧网站</li>", 
-        "<li>按F12打开开发者工具[citation:4]</li>",
-        "<li>复制Network请求中的Cookie</li>",
-        "<li>在此处填写Cookie和用户名</li>",
-        "</ol>"
+        "<li>使用Chrome/Edge浏览器访问 <a href='https://www.wnflb2023.com' target='_blank'>福利吧网站</a> 并登录</li>",
+        "<li>按<strong>F12</strong>打开开发者工具</li>",
+        "<li>点击<strong>Network（网络）</strong>标签</li>",
+        "<li>按<strong>F5</strong>刷新页面</li>",
+        "<li>在Network面板中找到<strong>forum.php</strong>或任意请求</li>",
+        "<li>右键点击该请求，选择<strong>Copy → Copy as cURL</strong></li>",
+        "<li>将复制的内容粘贴到文本编辑器，找到<strong>Cookie:</strong>开头的那一行</li>",
+        "<li>复制整个Cookie字符串（从Cookie: 到下一个参数前）</li>",
+        "<li>粘贴到上面的Cookie输入框中</li>",
+        "</ol>",
+        
+        "<h4 style='margin-left:20px;'>方法二：使用浏览器扩展（可选）</h4>",
+        "<ol style='margin-left:40px;'>",
+        "<li>安装Cookie编辑器扩展（如EditThisCookie）</li>",
+        "<li>登录福利吧后，点击扩展图标</li>",
+        "<li>复制全部Cookie值</li>",
+        "<li>粘贴到上面的Cookie输入框中</li>",
+        "</ol>",
+        
+        "<h4 style='margin-left:20px;'>方法三：控制台脚本获取（高级用户）</h4>",
+        "<div style='margin-left:40px; background: #f5f5f5; padding: 10px; border-radius: 5px;'>",
+        "<p>在福利吧页面按F12打开控制台，粘贴以下代码：</p>",
+        "<pre style='background: #2d2d2d; color: #f8f8f2; padding: 10px; border-radius: 3px; overflow-x: auto;'>",
+        "// 获取当前页面Cookie\nvar cookies = document.cookie;\nconsole.log('=== 福利吧Cookie ===');\nconsole.log(cookies);\nconsole.log('=== 复制上面的内容到BoxJS ===');\n\n// 尝试获取用户名\nvar userNameElem = document.querySelector('a[title*=\"访问我的空间\"]');\nif (userNameElem) {\n    var userName = userNameElem.textContent.trim();\n    console.log('=== 检测到的用户名 ===');\n    console.log(userName);\n    console.log('=== 复制上面的用户名到BoxJS ===');\n} else {\n    console.log('未检测到用户名元素，请手动输入用户名');\n}\n\n// 自动复制到剪贴板（需要用户授权）\nif (navigator.clipboard) {\n    navigator.clipboard.writeText(cookies).then(function() {\n        console.log('Cookie已复制到剪贴板！');\n    }).catch(function(err) {\n        console.log('自动复制失败，请手动复制');\n    });\n}",
+        "</pre>",
+        "<p>运行后，控制台会显示Cookie和用户名信息</p>",
+        "</div>",
+        
+        "<h4 style='margin-left:20px;'>验证配置</h4>",
+        "<ul style='margin-left:40px;'>",
+        "<li>填写完成后，保存配置</li>",
+        "<li>在Quantumult X中手动运行签到脚本测试</li>",
+        "<li>如果提示Cookie失效，请重新获取最新Cookie</li>",
+        "<li>Cookie通常有有效期，过期需要重新获取</li>",
+        "</ul>",
+        
+        "<div style='margin-left:20px; margin-top: 20px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;'>",
+        "<p><strong>⚠️ 安全提示：</strong></p>",
+        "<ul>",
+        "<li>请勿将您的Cookie分享给他人</li>",
+        "<li>定期更新Cookie以确保安全</li>",
+        "<li>仅在可信的环境中使用此脚本</li>",
+        "</ul>",
+        "</div>"
       ]
     }
   ]
