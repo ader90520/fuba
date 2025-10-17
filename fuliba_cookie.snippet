@@ -1,0 +1,6 @@
+[rewrite_local]
+# 福利吧 - 获取Cookie
+^https:\/\/(www\.wnflb2023\.com|www\.wnflb00\.com|www\.wnflb99\.com)\/forum\.php.*mobile=no url script-request-header https://raw.githubusercontent.com/ader90520/fuba/refs/heads/main/fuliba_cookie.js
+
+[mitm]
+hostname = www.wnflb2023.com, www.wnflb00.com, www.wnflb99.com
