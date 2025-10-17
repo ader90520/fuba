@@ -1,28 +1,11 @@
 #!name=福利吧Cookie获取
 #!desc=自动获取福利吧登录Cookie，获取成功后请禁用此规则
-#!author=您的用户名
-#!homepage=https://github.com/ader90520/fuba
-#!icon=https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/others/cookie.png
-#!raw-url=https://raw.githubusercontent.com/ader90520/fuba/main/fuliba_cookie.snippet
-#!category=签到脚本
-#!tag=福利吧
-#!system=iOS, iPadOS
-#!date=2024-01-20 10:00:00
+（其他注释信息...）
 
-#############################################
 # 福利吧Cookie获取配置
-#############################################
-
-# MitM主机名配置
-hostname = www.wnflb2023.com, www.wnflb00.com, www.wnflb99.com
-
 # 重写规则
-[rewrite_local]
-# 福利吧论坛页面Cookie获取
 ^https:\/\/(www\.wnflb2023\.com|www\.wnflb00\.com|www\.wnflb99\.com)\/forum\.php.*mobile=no url script-request-header https://raw.githubusercontent.com/ader90520/fuba/main/fuliba_cookie.js
-
-# 福利吧个人中心页面Cookie获取  
 ^https:\/\/(www\.wnflb2023\.com|www\.wnflb00\.com|www\.wnflb99\.com)\/home\.php.*mod=space url script-request-header https://raw.githubusercontent.com/ader90520/fuba/main/fuliba_cookie.js
 
-[mitm]
+# MitM主机名配置
 hostname = www.wnflb2023.com, www.wnflb00.com, www.wnflb99.com
