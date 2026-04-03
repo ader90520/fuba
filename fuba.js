@@ -1,238 +1,207 @@
-// 福利吧签到脚本 for Quantumult X (BoxJS版本)
-const cookieName = '福利吧签到'
+/*
+福利吧签到 for Quantumult X (BoxJS 优化版)
+配套订阅：https://raw.githubusercontent.com/你的用户名/仓库/main/fuba_sub.json
+功能：自动签到、记录连续天数、总天数、积分，支持多域名自动切换
+*/
 
-// 配置获取函数
+const cookieName = '福利吧签到';
+
+// 从 BoxJS 读取配置
 function getConfig() {
-    let config = { 
-        cookie: '', 
-        username: '',
-        domain: 'www.wnflb2023.com'
+    return {
+        cookie: $prefs.valueForKey('fuba_cookie') || '',
+        username: $prefs.valueForKey('fuba_username') || '',
+        domain: $prefs.valueForKey('fuba_domain') || 'www.wnflb2023.com',
+        lastSignDate: $prefs.valueForKey('fuba_last_sign_date') || '',
+        continuousDays: parseInt($prefs.valueForKey('fuba_continuous_days')) || 0,
+        totalDays: parseInt($prefs.valueForKey('fuba_total_days')) || 0,
+        points: $prefs.valueForKey('fuba_points') || '0'
     };
-    
-    // 方法1: 尝试从BoxJS环境变量获取
-    if (typeof $environment !== 'undefined') {
-        config.cookie = $environment['fuba_cookie'] || $environment['fuba-cookie'] || '';
-        config.username = $environment['fuba_username'] || $environment['fuba-username'] || '';
-        config.domain = $environment['fuba_domain'] || $environment['fuba-domain'] || 'www.wnflb2023.com';
+}
+
+// 保存统计数据到 BoxJS
+function saveStats(lastDate, continuous, total, points) {
+    if (lastDate) $prefs.setValueForKey(lastDate, 'fuba_last_sign_date');
+    if (continuous !== undefined) $prefs.setValueForKey(String(continuous), 'fuba_continuous_days');
+    if (total !== undefined) $prefs.setValueForKey(String(total), 'fuba_total_days');
+    if (points) $prefs.setValueForKey(points, 'fuba_points');
+}
+
+// 主函数
+!(async () => {
+    // 检查环境
+    if (!$task) {
+        $notify(cookieName, '错误', '当前环境不支持，请在 Quantumult X 中运行');
+        $done();
+        return;
     }
-    
-    // 方法2: 通过持久化存储获取（备用方案）
-    if (!config.cookie) config.cookie = $prefs.valueForKey('fuba_cookie');
-    if (!config.username) config.username = $prefs.valueForKey('fuba_username');
-    if (!config.domain) config.domain = $prefs.valueForKey('fuba_domain') || 'www.wnflb2023.com';
-    
-    // 方法3: 通过参数获取
-    if (typeof $argument !== 'undefined' && $argument) {
-        $argument.split('&').forEach((part) => {
-            const [key, value] = part.split('=');
-            if (key === 'cookie') config.cookie = decodeURIComponent(value);
-            if (key === 'username') config.username = decodeURIComponent(value);
-            if (key === 'domain') config.domain = decodeURIComponent(value);
-        });
+
+    const config = getConfig();
+    const { cookie: myCookie, username: myUsername, domain: flbDomain } = config;
+
+    if (!myCookie || !myUsername) {
+        const errorMsg = `请在 BoxJS 中配置福利吧签到参数\nCookie: ${myCookie ? '已设置' : '未设置'}\n用户名: ${myUsername ? '已设置' : '未设置'}`;
+        $notify(cookieName, '配置错误', errorMsg);
+        console.log(errorMsg);
+        $done();
+        return;
     }
-    
-    console.log(`配置获取: 用户名=${config.username ? '已设置' : '未设置'}, 域名=${config.domain}`);
-    return config;
-}
 
-const { cookie: myCookie, username: myUsername, domain: flbUrl } = getConfig();
+    console.log(`🚀 开始福利吧签到流程... 域名: ${flbDomain}, 用户: ${myUsername}`);
 
-// 检查配置完整性和环境支持
-if (!$task) {
-    $notify(cookieName, "错误", "当前环境不支持，请在Quantumult X中运行");
-    $done();
-}
-
-if (!myCookie || !myUsername) {
-    const errorMsg = `请在BoxJS中配置福利吧签到参数\nCookie: ${myCookie ? '已设置' : '未设置'}\n用户名: ${myUsername ? '已设置' : '未设置'}`;
-    $notify(cookieName, "配置错误", errorMsg);
-    console.log(errorMsg);
-    $done();
-}
-
-;(async () => {
     try {
-        console.log('开始福利吧签到流程...');
-        console.log(`使用域名: ${flbUrl}`);
-        console.log(`用户名: ${myUsername}`);
-        
-        // 1. 访问PC主页验证Cookie并获取用户名
-        console.log('正在验证Cookie和访问网站...');
-        const userOptions = {
-            url: `https://${flbUrl}/forum.php?mobile=no`,
-            headers: {
-                'Cookie': myCookie,
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'zh-CN,zh;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br'
-            },
+        // 1. 访问首页验证 Cookie 并获取用户名
+        const homeUrl = `https://${flbDomain}/forum.php?mobile=no`;
+        const homeHtml = await request({
+            url: homeUrl,
+            headers: buildHeaders(myCookie),
             timeout: 20000
-        };
+        });
 
-        const userInfo = await request(userOptions);
-        
-        // 检查网站是否可访问
-        if (!userInfo) {
-            throw new Error('网站访问失败，请检查网络连接或域名状态');
-        }
-        
-        // 检查是否被重定向到登录页
-        if (userInfo.includes('登录') && userInfo.includes('password')) {
-            throw new Error('Cookie已失效，请重新获取Cookie并在BoxJS中更新');
-        }
-        
-        // 检查网站维护或其他错误页面
-        if (userInfo.includes('维护') || userInfo.includes('错误') || userInfo.includes('404')) {
-            throw new Error('网站暂时无法访问，请稍后重试');
-        }
-        
-        const userNameMatch = userInfo.match(/title="访问我的空间">(.*?)<\/a>/);
-        
-        if (!userNameMatch) {
-            throw new Error('Cookie可能已失效，无法获取用户名信息，请在BoxJS中检查Cookie配置');
-        }
+        if (!homeHtml) throw new Error('网站访问失败，请检查网络或域名');
+        if (homeHtml.includes('登录') && homeHtml.includes('password')) throw new Error('Cookie 已失效，请重新获取');
+        if (homeHtml.includes('维护') || homeHtml.includes('404')) throw new Error('网站暂时无法访问');
 
-        const userName = userNameMatch[1].trim();
-        console.log(`登录用户名为：${userName}`);
-        console.log(`配置用户名为：${myUsername}`);
+        // 提取用户名
+        const nameMatch = homeHtml.match(/title="访问我的空间">(.*?)<\/a>/);
+        if (!nameMatch) throw new Error('无法提取用户名，Cookie 可能失效');
+        const actualUser = nameMatch[1].trim();
+        if (actualUser !== myUsername) {
+            throw new Error(`用户名不匹配：期望 "${myUsername}"，实际 "${actualUser}"`);
+        }
+        console.log(`✅ 用户验证通过: ${actualUser}`);
 
-        if (userName !== myUsername) {
-            throw new Error(`Cookie用户不匹配：期望"${myUsername}"，实际"${userName}"，请在BoxJS中检查用户名配置`);
+        // 2. 检查今日是否已签到
+        const today = new Date().toDateString();
+        if (homeHtml.includes('今日已签到') || homeHtml.includes('已经签到')) {
+            console.log('📅 今日已签到，跳过签到动作');
+            await updatePointsAndStats(homeHtml, config);
+            $notify(cookieName, '今日已签到', `用户: ${actualUser}\n积分: ${config.points}`);
+            $done();
+            return;
         }
 
-        // 2. 获取签到链接
-        console.log('正在获取签到链接...');
-        const signUrlMatch = userInfo.match(/}function fx_checkin(.*?);/);
-        let signUrl = '';
-        
-        if (!signUrlMatch) {
-            // 尝试其他可能的匹配模式
-            const altSignUrlMatch = userInfo.match(/checkin.*?href.*?['"](.*?)['"]/);
-            if (altSignUrlMatch) {
-                signUrl = altSignUrlMatch[1];
-                console.log(`通过备用模式获取签到链接: ${signUrl}`);
-            } else {
-                // 检查是否已经签到
-                if (userInfo.includes('今日已签到') || userInfo.includes('已签到')) {
-                    console.log('今日已签到过，直接获取积分信息');
-                    // 继续执行获取积分信息
-                } else {
-                    throw new Error('无法提取签到链接，请检查网页结构是否变化');
-                }
-            }
+        // 3. 提取签到链接
+        let signUrl = extractSignUrl(homeHtml, flbDomain);
+        if (!signUrl) throw new Error('无法提取签到链接，请检查网页结构');
+
+        console.log(`🔗 签到链接: ${signUrl}`);
+
+        // 4. 执行签到
+        const signFullUrl = signUrl.startsWith('http') ? signUrl : `https://${flbDomain}/${signUrl}`;
+        const signHtml = await request({
+            url: signFullUrl,
+            headers: buildHeaders(myCookie, signFullUrl),
+            timeout: 15000
+        });
+
+        if (signHtml.includes('今日已签到') || signHtml.includes('签到成功')) {
+            console.log('✅ 签到成功');
         } else {
-            signUrl = signUrlMatch[1];
-            signUrl = signUrl.substring(47, signUrl.length - 2);
-            console.log(`签到链接: ${signUrl}`);
+            console.log('⚠️ 签到请求已发送，结果未知');
         }
 
-        // 3. 执行签到（如果有签到链接）
-        if (signUrl && !userInfo.includes('今日已签到')) {
-            console.log('正在执行签到...');
-            const signOptions = {
-                url: `https://${flbUrl}/${signUrl}`,
-                headers: {
-                    'Cookie': myCookie,
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                    'Referer': `https://${flbUrl}/forum.php`
-                },
-                timeout: 15000
-            };
+        // 5. 获取最新积分和统计
+        const finalHtml = await request({
+            url: homeUrl,
+            headers: buildHeaders(myCookie),
+            timeout: 20000
+        });
+        await updatePointsAndStats(finalHtml, config);
 
-            const signResult = await request(signOptions);
-            
-            // 检查签到结果
-            if (signResult.includes('今日已签到') || signResult.includes('已经签到') || signResult.includes('签到成功')) {
-                console.log('📝 签到完成');
-            } else {
-                console.log('✅ 签到请求已发送');
-            }
-        }
+        // 6. 更新连续/总签到天数
+        const lastSignDate = config.lastSignDate;
+        let newContinuous = config.continuousDays;
+        let newTotal = config.totalDays;
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toDateString();
 
-        // 4. 获取签到后的积分信息
-        console.log('正在获取积分信息...');
-        const finalUserInfo = await request(userOptions);
-        
-        // 尝试多种匹配模式获取积分信息
-        let currentMoney = '未知';
-        let singDay = '今日签到完成';
-        
-        // 模式1: extcreditmenu（主要模式）
-        const currentMoneyMatch = finalUserInfo.match(/<a.*?id="extcreditmenu".*?>(.*?)<\/a>/);
-        // 模式2: 积分显示
-        const moneyMatch2 = finalUserInfo.match(/积分.*?(\d+)/);
-        // 模式3: 金钱/金币显示
-        const moneyMatch3 = finalUserInfo.match(/(金钱|金币|金币).*?(\d+)/);
-        
-        if (currentMoneyMatch) {
-            currentMoney = currentMoneyMatch[1].trim();
-            console.log(`通过extcreditmenu获取积分: ${currentMoney}`);
-        } else if (moneyMatch3) {
-            currentMoney = moneyMatch3[2];
-            console.log(`通过金钱匹配获取积分: ${currentMoney}`);
-        } else if (moneyMatch2) {
-            currentMoney = moneyMatch2[1];
-            console.log(`通过积分匹配获取积分: ${currentMoney}`);
-        } else {
-            // 最后尝试搜索数字格式的积分
-            const fallbackMoneyMatch = finalUserInfo.match(/(\d+\.?\d*)\s*(金币|金钱|积分)/);
-            if (fallbackMoneyMatch) {
-                currentMoney = fallbackMoneyMatch[1];
-                console.log(`通过备用匹配获取积分: ${currentMoney}`);
-            }
+        if (lastSignDate === yesterdayStr) {
+            newContinuous = config.continuousDays + 1;
+        } else if (lastSignDate !== today) {
+            newContinuous = 1;
         }
-        
-        // 查找签到信息
-        const singDayMatch = finalUserInfo.match(/<div class="tip_c">(.*?)<\/div>/);
-        if (singDayMatch) {
-            singDay = singDayMatch[1].trim();
-        } else {
-            // 尝试其他可能的签到信息位置
-            const altSingDayMatch = finalUserInfo.match(/签到.*?(已签到|\d+天)/);
-            if (altSingDayMatch) {
-                singDay = altSingDayMatch[0];
-            }
-        }
-        
-        const logInfo = `用户: ${userName} | ${singDay} | 积分: ${currentMoney}`;
-        
-        $notify(cookieName, `签到成功`, logInfo);
-        console.log('✅ ' + logInfo);
+        newTotal = config.totalDays + 1;
+
+        saveStats(today, newContinuous, newTotal, config.points);
+
+        // 7. 发送成功通知
+        const message = `用户: ${actualUser}\n积分: ${config.points}\n连续签到: ${newContinuous} 天\n累计签到: ${newTotal} 天`;
+        $notify(cookieName, '签到成功', message);
+        console.log(`✅ ${message}`);
 
     } catch (error) {
         const errorMsg = error.message || error;
         $notify(cookieName, '签到失败', errorMsg);
         console.error(`❌ 签到失败: ${errorMsg}`);
-        
-        // 提供具体的解决建议
-        if (errorMsg.includes('网站访问失败') || errorMsg.includes('域名状态')) {
-            console.log('💡 建议: 请在BoxJS中检查域名配置或尝试其他域名');
-        } else if (errorMsg.includes('Cookie') || errorMsg.includes('用户名')) {
-            console.log('💡 建议: 请在BoxJS中检查Cookie和用户名配置');
+
+        if (errorMsg.includes('Cookie')) {
+            console.log('💡 建议: 重新获取 Cookie 并更新 BoxJS 配置');
+        } else if (errorMsg.includes('域名')) {
+            console.log('💡 建议: 在 BoxJS 中更换福利吧域名');
         }
     } finally {
         $done();
     }
 })();
 
-// 通用请求函数
-function request(options, throwError = true) {
+// 提取签到链接（兼容多种格式）
+function extractSignUrl(html, domain) {
+    // 模式1: fx_checkin 函数中的链接
+    let match = html.match(/function fx_checkin\(.*?\)\s*\{[^}]*?window\.location\.href\s*=\s*['"](.*?)['"]/);
+    if (match) return match[1];
+
+    // 模式2: 直接 href 的签到链接
+    match = html.match(/checkin.*?href\s*=\s*['"](.*?plugin\.php\?id=.*?checkin.*?)['"]/);
+    if (match) return match[1];
+
+    // 模式3: a 标签中的签到
+    match = html.match(/<a[^>]*?href\s*=\s*['"](.*?(?:checkin|sign).*?)['"][^>]*?>.*?签到.*?<\/a>/i);
+    if (match) return match[1];
+
+    return null;
+}
+
+// 更新积分和统计信息（不签到，仅解析）
+async function updatePointsAndStats(html, config) {
+    // 提取积分
+    let points = '未知';
+    let pointsMatch = html.match(/<a.*?id="extcreditmenu".*?>(.*?)<\/a>/);
+    if (pointsMatch) points = pointsMatch[1].trim();
+    else {
+        pointsMatch = html.match(/(?:积分|金币|金钱)[^\d]*(\d+)/);
+        if (pointsMatch) points = pointsMatch[1];
+    }
+    config.points = points;
+    saveStats(null, null, null, points);
+    console.log(`📊 当前积分: ${points}`);
+}
+
+// 构建请求头
+function buildHeaders(cookie, referer = null) {
+    const headers = {
+        'Cookie': cookie,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br'
+    };
+    if (referer) headers['Referer'] = referer;
+    return headers;
+}
+
+// 网络请求封装
+function request(options) {
     return new Promise((resolve, reject) => {
-        $task.fetch(options).then(response => {
-            if (response.statusCode === 200) {
-                resolve(response.body);
-            } else if (throwError) {
-                reject(`HTTP错误: ${response.statusCode} - ${response.statusText}`);
-            } else {
-                resolve(response.body);
-            }
-        }, reason => {
-            if (throwError) {
-                reject(reason.error || reason);
-            } else {
-                resolve(null);
-            }
+        const timeout = setTimeout(() => reject(new Error('请求超时')), options.timeout || 20000);
+        $task.fetch(options).then(resp => {
+            clearTimeout(timeout);
+            if (resp.statusCode === 200) resolve(resp.body);
+            else reject(new Error(`HTTP ${resp.statusCode}`));
+        }).catch(err => {
+            clearTimeout(timeout);
+            reject(err);
         });
     });
 }
