@@ -2,6 +2,7 @@
 福利吧签到 for Quantumult X (BoxJS 优化版)
 配套订阅：https://raw.githubusercontent.com/你的用户名/仓库/main/fuba_sub.json
 功能：自动签到、记录连续天数、总天数、积分，支持多域名自动切换
+修复：连续签到天数和总签到天数不再为 0，正确从网页提取或计算
 */
 
 const cookieName = '福利吧签到';
@@ -25,6 +26,39 @@ function saveStats(lastDate, continuous, total, points) {
     if (continuous !== undefined) $prefs.setValueForKey(String(continuous), 'fuba_continuous_days');
     if (total !== undefined) $prefs.setValueForKey(String(total), 'fuba_total_days');
     if (points) $prefs.setValueForKey(points, 'fuba_points');
+}
+
+// 从 HTML 中提取积分、连续天数、总天数
+function extractStats(html) {
+    let points = '未知';
+    let continuous = 0;
+    let total = 0;
+
+    // 提取积分
+    let pointsMatch = html.match(/<a.*?id="extcreditmenu".*?>(.*?)<\/a>/);
+    if (pointsMatch) points = pointsMatch[1].trim();
+    else {
+        pointsMatch = html.match(/(?:积分|金币|金钱)[^\d]*(\d+)/);
+        if (pointsMatch) points = pointsMatch[1];
+    }
+
+    // 提取连续签到天数
+    let match = html.match(/连续签到[：:]\s*(\d+)\s*天/);
+    if (match) continuous = parseInt(match[1]);
+    else {
+        match = html.match(/已连续签到\s*(\d+)\s*天/);
+        if (match) continuous = parseInt(match[1]);
+    }
+
+    // 提取累计签到天数
+    match = html.match(/累计签到[：:]\s*(\d+)\s*天/);
+    if (match) total = parseInt(match[1]);
+    else {
+        match = html.match(/累计签到\s*(\d+)\s*天/);
+        if (match) total = parseInt(match[1]);
+    }
+
+    return { points, continuous, total };
 }
 
 // 主函数
@@ -71,23 +105,28 @@ function saveStats(lastDate, continuous, total, points) {
         }
         console.log(`✅ 用户验证通过: ${actualUser}`);
 
-        // 2. 检查今日是否已签到
+        // 2. 提取当前积分和统计（用于后续更新）
+        let currentStats = extractStats(homeHtml);
+        console.log(`📊 签到前积分: ${currentStats.points}, 连续: ${currentStats.continuous}, 累计: ${currentStats.total}`);
+
+        // 3. 检查今日是否已签到
         const today = new Date().toDateString();
         if (homeHtml.includes('今日已签到') || homeHtml.includes('已经签到')) {
             console.log('📅 今日已签到，跳过签到动作');
-            await updatePointsAndStats(homeHtml, config);
-            $notify(cookieName, '今日已签到', `用户: ${actualUser}\n积分: ${config.points}`);
+            // 仍然更新存储中的统计数据（可能之前未保存）
+            if (currentStats.continuous > 0) saveStats(null, currentStats.continuous, currentStats.total, currentStats.points);
+            $notify(cookieName, '今日已签到', `用户: ${actualUser}\n积分: ${currentStats.points}\n连续: ${currentStats.continuous}天\n累计: ${currentStats.total}天`);
             $done();
             return;
         }
 
-        // 3. 提取签到链接
+        // 4. 提取签到链接
         let signUrl = extractSignUrl(homeHtml, flbDomain);
         if (!signUrl) throw new Error('无法提取签到链接，请检查网页结构');
 
         console.log(`🔗 签到链接: ${signUrl}`);
 
-        // 4. 执行签到
+        // 5. 执行签到
         const signFullUrl = signUrl.startsWith('http') ? signUrl : `https://${flbDomain}/${signUrl}`;
         const signHtml = await request({
             url: signFullUrl,
@@ -101,33 +140,40 @@ function saveStats(lastDate, continuous, total, points) {
             console.log('⚠️ 签到请求已发送，结果未知');
         }
 
-        // 5. 获取最新积分和统计
+        // 6. 获取签到后的最新页面，提取最终统计
         const finalHtml = await request({
             url: homeUrl,
             headers: buildHeaders(myCookie),
             timeout: 20000
         });
-        await updatePointsAndStats(finalHtml, config);
+        const finalStats = extractStats(finalHtml);
+        console.log(`📊 签到后积分: ${finalStats.points}, 连续: ${finalStats.continuous}, 累计: ${finalStats.total}`);
 
-        // 6. 更新连续/总签到天数
-        const lastSignDate = config.lastSignDate;
-        let newContinuous = config.continuousDays;
-        let newTotal = config.totalDays;
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toDateString();
+        // 7. 更新存储的统计数据（优先使用网页提取的真实值）
+        let newContinuous = finalStats.continuous;
+        let newTotal = finalStats.total;
+        let newPoints = finalStats.points;
 
-        if (lastSignDate === yesterdayStr) {
-            newContinuous = config.continuousDays + 1;
-        } else if (lastSignDate !== today) {
-            newContinuous = 1;
+        // 如果网页未提供连续/累计数据，则使用计算逻辑作为后备
+        if (newContinuous === 0) {
+            const lastDate = config.lastSignDate;
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toDateString();
+            if (lastDate === yesterdayStr) {
+                newContinuous = config.continuousDays + 1;
+            } else {
+                newContinuous = 1;
+            }
         }
-        newTotal = config.totalDays + 1;
+        if (newTotal === 0) {
+            newTotal = config.totalDays + 1;
+        }
 
-        saveStats(today, newContinuous, newTotal, config.points);
+        saveStats(today, newContinuous, newTotal, newPoints);
 
-        // 7. 发送成功通知
-        const message = `用户: ${actualUser}\n积分: ${config.points}\n连续签到: ${newContinuous} 天\n累计签到: ${newTotal} 天`;
+        // 8. 发送成功通知
+        const message = `用户: ${actualUser}\n积分: ${newPoints}\n连续签到: ${newContinuous} 天\n累计签到: ${newTotal} 天`;
         $notify(cookieName, '签到成功', message);
         console.log(`✅ ${message}`);
 
@@ -161,21 +207,6 @@ function extractSignUrl(html, domain) {
     if (match) return match[1];
 
     return null;
-}
-
-// 更新积分和统计信息（不签到，仅解析）
-async function updatePointsAndStats(html, config) {
-    // 提取积分
-    let points = '未知';
-    let pointsMatch = html.match(/<a.*?id="extcreditmenu".*?>(.*?)<\/a>/);
-    if (pointsMatch) points = pointsMatch[1].trim();
-    else {
-        pointsMatch = html.match(/(?:积分|金币|金钱)[^\d]*(\d+)/);
-        if (pointsMatch) points = pointsMatch[1];
-    }
-    config.points = points;
-    saveStats(null, null, null, points);
-    console.log(`📊 当前积分: ${points}`);
 }
 
 // 构建请求头
