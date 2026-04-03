@@ -1,6 +1,6 @@
 {
-  "id": "fuba_sign",
-  "name": "福利吧签到", 
+  "id": "ader90520.fuba.collection",
+  "name": "福利吧签到合集",
   "description": "福利吧每日自动签到脚本，兼容BoxJs以及Quantumult X",
   "author": "@ader90520",
   "icon": "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
@@ -9,16 +9,20 @@
     {
       "id": "fuba_sign",
       "name": "福利吧签到",
-      "author": "@ader90520", 
+      "author": "@ader90520",
       "repo": "https://github.com/ader90520/fulibaqiandao",
       "icons": [
         "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
         "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png"
       ],
       "keys": [
-        "fuba_cookie", 
+        "fuba_cookie",
         "fuba_username",
-        "fuba_domain"
+        "fuba_domain",
+        "fuba_last_sign_date",
+        "fuba_continuous_days",
+        "fuba_total_days",
+        "fuba_points"
       ],
       "settings": [
         {
@@ -32,7 +36,7 @@
               "val": "www.wnflb2023.com"
             },
             {
-              "name": "wnflb00.com", 
+              "name": "wnflb00.com",
               "val": "www.wnflb00.com"
             },
             {
@@ -44,7 +48,7 @@
         },
         {
           "id": "fuba_cookie",
-          "name": "福利吧Cookie", 
+          "name": "福利吧Cookie",
           "val": "",
           "type": "textarea",
           "autoGrow": true,
@@ -54,10 +58,39 @@
         {
           "id": "fuba_username",
           "name": "福利吧用户名",
-          "val": "", 
+          "val": "",
           "type": "text",
           "placeholder": "通过圈X重写规则自动获取",
           "desc": "已配置自动获取，无需手动填写"
+        },
+        {
+          "id": "fuba_last_sign_date",
+          "name": "最后签到日期",
+          "val": "",
+          "type": "text",
+          "placeholder": "自动记录",
+          "desc": "自动记录最后成功签到的日期"
+        },
+        {
+          "id": "fuba_continuous_days",
+          "name": "连续签到天数",
+          "val": "0",
+          "type": "number",
+          "desc": "自动记录连续签到天数"
+        },
+        {
+          "id": "fuba_total_days",
+          "name": "总签到天数",
+          "val": "0",
+          "type": "number",
+          "desc": "自动记录总签到天数"
+        },
+        {
+          "id": "fuba_points",
+          "name": "当前积分",
+          "val": "0",
+          "type": "text",
+          "desc": "自动记录当前积分"
         },
         {
           "id": "@fuba.auto_get",
@@ -69,33 +102,29 @@
       ],
       "scripts": [
         {
-          "name": "福利吧签到",
-          "description": "每日自动签到福利吧，获取积分", 
-          "cron": "30 8 * * *"
+          "name": "福利吧签到脚本",
+          "script": "https://raw.githubusercontent.com/ader90520/QuantumultX/refs/heads/main/Stripts/myScripts/fuba/fuba.js"
         }
       ],
-      "descs_html": [
-        "<h3 style='margin-left:20px;'>福利吧自动签到脚本</h3>",
-        "<p style='margin-left:20px; color: orange;'><strong>Cookie和用户名已配置自动获取，无需手动填写</strong></p>",
-        
-        "<h4 style='margin-left:20px;'>自动获取配置说明</h4>",
-        "<ol style='margin-left:40px;'>",
+      "desc_html": [
+        "<h3>福利吧自动签到脚本</h3>",
+        "<p style='color: orange;'><strong>Cookie和用户名已配置自动获取，无需手动填写</strong></p>",
+        "<h4>自动获取配置说明</h4>",
+        "<ol>",
         "<li>确保Quantumult X重写规则中已启用福利吧Cookie获取规则</li>",
         "<li>使用Safari浏览器访问福利吧网站并登录账号</li>",
         "<li>系统将自动捕获Cookie和用户名信息并保存</li>",
         "<li>成功获取后，上方输入框将显示自动获取的值</li>",
         "<li>签到脚本会自动使用这些凭证进行每日签到</li>",
         "</ol>",
-        
-        "<h4 style='margin-left:20px;'>技术实现原理</h4>",
-        "<ul style='margin-left:40px;'>",
+        "<h4>技术实现原理</h4>",
+        "<ul>",
         "<li><strong>Cookie获取</strong>：通过重写规则拦截HTTP请求头中的Cookie信息</li>",
-        "<li><strong>用户名获取</strong>：从页面HTML中解析用户空间链接的用户名[citation:5]</li>",
-        "<li><strong>数据存储</strong>：使用$prefs API将数据持久化存储到BoxJS[citation:4]</li>",
+        "<li><strong>用户名获取</strong>：从页面HTML中解析用户空间链接的用户名</li>",
+        "<li><strong>数据存储</strong>：使用$prefs API将数据持久化存储到BoxJS</li>",
         "<li><strong>自动验证</strong>：比对获取的用户名与预期用户名确保Cookie有效性</li>",
         "</ul>",
-        
-        "<div style='margin-left:20px; margin-top: 20px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;'>",
+        "<div style='padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; margin-top: 15px;'>",
         "<p><strong>⚠️ 重要提示：</strong></p>",
         "<ul>",
         "<li>获取成功后建议禁用获取规则，避免重复触发</li>",
@@ -108,5 +137,3 @@
     }
   ]
 }
-
-
