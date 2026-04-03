@@ -1,7 +1,7 @@
 {
   "id": "ader90520.fuba.collection",
   "name": "福利吧签到合集",
-  "description": "福利吧每日自动签到脚本，兼容BoxJs以及Quantumult X",
+  "description": "福利吧每日自动签到脚本，兼容BoxJs以及Quantumult X\n自动记录连续签到天数、总天数、积分和最后签到日期",
   "author": "@ader90520",
   "icon": "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
   "repo": "https://github.com/ader90520/fulibaqiandao",
@@ -31,18 +31,9 @@
           "val": "www.wnflb2023.com",
           "type": "select",
           "options": [
-            {
-              "name": "wnflb2023.com",
-              "val": "www.wnflb2023.com"
-            },
-            {
-              "name": "wnflb00.com",
-              "val": "www.wnflb00.com"
-            },
-            {
-              "name": "wnflb99.com",
-              "val": "www.wnflb99.com"
-            }
+            { "name": "wnflb2023.com", "val": "www.wnflb2023.com" },
+            { "name": "wnflb00.com", "val": "www.wnflb00.com" },
+            { "name": "wnflb99.com", "val": "www.wnflb99.com" }
           ],
           "desc": "选择福利吧访问域名，如果某个域名无法访问，请尝试其他域名"
         },
@@ -64,40 +55,47 @@
           "desc": "已配置自动获取，无需手动填写"
         },
         {
+          "id": "@fuba.auto_get",
+          "name": "自动获取状态",
+          "val": false,
+          "type": "boolean",
+          "desc": "显示Cookie和用户名是否已通过重写规则自动获取"
+        },
+        {
           "id": "fuba_last_sign_date",
           "name": "最后签到日期",
           "val": "",
           "type": "text",
           "placeholder": "自动记录",
-          "desc": "自动记录最后成功签到的日期"
+          "desc": "脚本自动记录的最后成功签到日期（格式：Mon Apr 03 2026）",
+          "readonly": true
         },
         {
           "id": "fuba_continuous_days",
           "name": "连续签到天数",
           "val": "0",
           "type": "number",
-          "desc": "自动记录连续签到天数"
+          "placeholder": "0",
+          "desc": "脚本自动记录的连续签到天数",
+          "readonly": true
         },
         {
           "id": "fuba_total_days",
           "name": "总签到天数",
           "val": "0",
           "type": "number",
-          "desc": "自动记录总签到天数"
+          "placeholder": "0",
+          "desc": "脚本自动记录的累计签到总天数",
+          "readonly": true
         },
         {
           "id": "fuba_points",
           "name": "当前积分",
           "val": "0",
           "type": "text",
-          "desc": "自动记录当前积分"
-        },
-        {
-          "id": "@fuba.auto_get",
-          "name": "自动获取状态",
-          "val": false,
-          "type": "boolean",
-          "desc": "显示Cookie和用户名是否已通过重写规则自动获取"
+          "placeholder": "自动获取",
+          "desc": "脚本自动更新的当前积分",
+          "readonly": true
         }
       ],
       "scripts": [
@@ -109,6 +107,13 @@
       "desc_html": [
         "<h3>福利吧自动签到脚本</h3>",
         "<p style='color: orange;'><strong>Cookie和用户名已配置自动获取，无需手动填写</strong></p>",
+        "<h4>📊 统计字段说明</h4>",
+        "<ul>",
+        "<li><strong>最后签到日期</strong>：脚本每次签到成功后自动更新，格式为英文日期（如 Mon Apr 03 2026）</li>",
+        "<li><strong>连续签到天数</strong>：自动计算并更新，漏签会自动重置</li>",
+        "<li><strong>总签到天数</strong>：累计签到总次数，每次签到成功增加1</li>",
+        "<li><strong>当前积分</strong>：从福利吧页面自动提取的积分值</li>",
+        "</ul>",
         "<h4>自动获取配置说明</h4>",
         "<ol>",
         "<li>确保Quantumult X重写规则中已启用福利吧Cookie获取规则</li>",
@@ -117,20 +122,14 @@
         "<li>成功获取后，上方输入框将显示自动获取的值</li>",
         "<li>签到脚本会自动使用这些凭证进行每日签到</li>",
         "</ol>",
-        "<h4>技术实现原理</h4>",
-        "<ul>",
-        "<li><strong>Cookie获取</strong>：通过重写规则拦截HTTP请求头中的Cookie信息</li>",
-        "<li><strong>用户名获取</strong>：从页面HTML中解析用户空间链接的用户名</li>",
-        "<li><strong>数据存储</strong>：使用$prefs API将数据持久化存储到BoxJS</li>",
-        "<li><strong>自动验证</strong>：比对获取的用户名与预期用户名确保Cookie有效性</li>",
-        "</ul>",
         "<div style='padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; margin-top: 15px;'>",
-        "<p><strong>⚠️ 重要提示：</strong></p>",
+        "<p><strong>⚠️ 重要提示</strong></p>",
         "<ul>",
         "<li>获取成功后建议禁用获取规则，避免重复触发</li>",
         "<li>Cookie有效期通常为1-3个月，过期需重新获取</li>",
         "<li>请勿分享您的Cookie信息，确保账号安全</li>",
         "<li>如遇签到失败，请检查Cookie是否失效并重新获取</li>",
+        "<li>统计字段由脚本自动维护，无需手动修改</li>",
         "</ul>",
         "</div>"
       ]
