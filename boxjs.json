@@ -10,7 +10,10 @@
       "name": "福利吧签到",
       "author": "@ader90520",
       "repo": "https://github.com/ader90520/fulibaqiandao",
-      "icon": "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
+      "icons": [
+        "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
+        "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png"
+      ],
       "keys": [
         "fuba_cookie",
         "fuba_username",
@@ -97,17 +100,31 @@
       "scripts": [
         {
           "name": "福利吧签到脚本",
-          "url": "https://raw.githubusercontent.com/ader90520/QuantumultX/refs/heads/main/Stripts/myScripts/fuba/fuba.js"
+          "script": "https://raw.githubusercontent.com/ader90520/QuantumultX/refs/heads/main/Stripts/myScripts/fuba/fuba.js"
         }
       ],
-      "desc_html": "<div style='padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;'><p><strong>⚠️ 重要提示</strong></p><ul><li>获取成功后建议禁用获取规则，避免重复触发</li><li>Cookie有效期通常为1-3个月，过期需重新获取</li><li>请勿分享您的Cookie信息，确保账号安全</li><li>如遇签到失败，请检查Cookie是否失效并重新获取</li><li>统计字段由脚本自动维护，无需手动修改</li></ul></div>"
+      "desc_html": [
+        "<div style='padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;'>",
+        "<p><strong>⚠️ 重要提示</strong></p>",
+        "<ul>",
+        "<li>获取成功后建议禁用获取规则，避免重复触发</li>",
+        "<li>Cookie有效期通常为1-3个月，过期需重新获取</li>",
+        "<li>请勿分享您的Cookie信息，确保账号安全</li>",
+        "<li>如遇签到失败，请检查Cookie是否失效并重新获取</li>",
+        "<li>统计字段由脚本自动维护，无需手动修改</li>",
+        "</ul>",
+        "</div>"
+      ]
     },
     {
       "id": "testflight_auto_join",
       "name": "TestFlight 自动加入",
       "author": "@Yuheng0101 (基于 @MuTu888 原脚本)",
       "repo": "https://github.com/Yuheng0101/X",
-      "icon": "https://raw.githubusercontent.com/githubdulong/Script/master/Images/testflight.png",
+      "icons": [
+        "https://raw.githubusercontent.com/githubdulong/Script/master/Images/testflight.png",
+        "https://raw.githubusercontent.com/githubdulong/Script/master/Images/testflight.png"
+      ],
       "keys": [
         "tf_key",
         "tf_session_id",
@@ -212,10 +229,21 @@
       "scripts": [
         {
           "name": "TestFlight 自动加入脚本",
-          "url": "https://raw.githubusercontent.com/Yuheng0101/X/main/Tasks/AutoJoinTF.js"
+          "script": "https://raw.githubusercontent.com/Yuheng0101/X/main/Tasks/AutoJoinTF.js"
         }
       ],
-      "desc_html": "<div style='padding: 10px; background: #e7f3ff; border: 1px solid #b8daff; border-radius: 5px;'><p><strong>📌 使用说明</strong></p><ul><li>首次使用需开启 HTTP 请求抓取（配置详见脚本头部注释）</li><li>打开 TestFlight APP 或分享链接即可自动捕获参数</li><li>定时任务会自动监控并加入尚未参与的应用</li><li>大部分参数由脚本自动写入，无需手动干预</li><li>如需修改尝试次数或间隔，可在此调整对应数值</li></ul></div>"
+      "desc_html": [
+        "<div style='padding: 10px; background: #e7f3ff; border: 1px solid #b8daff; border-radius: 5px;'>",
+        "<p><strong>📌 使用说明</strong></p>",
+        "<ul>",
+        "<li>首次使用需开启 HTTP 请求抓取（配置详见脚本头部注释）</li>",
+        "<li>打开 TestFlight APP 或分享链接即可自动捕获参数</li>",
+        "<li>定时任务会自动监控并加入尚未参与的应用</li>",
+        "<li>大部分参数由脚本自动写入，无需手动干预</li>",
+        "<li>如需修改尝试次数或间隔，可在此调整对应数值</li>",
+        "</ul>",
+        "</div>"
+      ]
     }
   ]
 }
