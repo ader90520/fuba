@@ -1,8 +1,7 @@
 {
-  "id": "ader90520.fuba.collection",
-  "name": "福利吧签到",
-  "description": "福利吧每日自动签到脚本，自动记录签到数据",
-  "author": "@ader90520",
+  "name": "实用工具箱合集",
+  "description": "福利吧签到 + TestFlight 自动加入，统一管理配置",
+  "author": "@ader90520 & @Yuheng0101",
   "icon": "https://raw.githubusercontent.com/leiyiyan/resource/main/icons/pyy.png",
   "repo": "https://github.com/ader90520/fulibaqiandao",
   "apps": [
@@ -113,6 +112,135 @@
         "<li>请勿分享您的Cookie信息，确保账号安全</li>",
         "<li>如遇签到失败，请检查Cookie是否失效并重新获取</li>",
         "<li>统计字段由脚本自动维护，无需手动修改</li>",
+        "</ul>",
+        "</div>"
+      ]
+    },
+    {
+      "id": "testflight_auto_join",
+      "name": "TestFlight 自动加入",
+      "author": "@Yuheng0101 (基于 @MuTu888 原脚本)",
+      "repo": "https://github.com/Yuheng0101/X",
+      "icons": [
+        "https://raw.githubusercontent.com/githubdulong/Script/master/Images/testflight.png",
+        "https://raw.githubusercontent.com/githubdulong/Script/master/Images/testflight.png"
+      ],
+      "keys": [
+        "tf_key",
+        "tf_session_id",
+        "tf_session_digest",
+        "tf_request_id",
+        "tf_apple_store_front",
+        "tf_apple_ta_device",
+        "tf_apple_amd_m",
+        "tf_apple_device_model",
+        "tf_user_agent",
+        "tf_app_ids",
+        "tf_loon_count",
+        "tf_interval"
+      ],
+      "settings": [
+        {
+          "id": "tf_key",
+          "name": "🔑 Key",
+          "type": "text",
+          "desc": "账号标识，通常从抓取中获得（/accounts/ 后的部分）",
+          "val": ""
+        },
+        {
+          "id": "tf_session_id",
+          "name": "📇 Session ID",
+          "type": "text",
+          "desc": "x-session-id 请求头",
+          "val": ""
+        },
+        {
+          "id": "tf_session_digest",
+          "name": "🔐 Session Digest",
+          "type": "text",
+          "desc": "x-session-digest 请求头",
+          "val": ""
+        },
+        {
+          "id": "tf_request_id",
+          "name": "🆔 Request ID",
+          "type": "text",
+          "desc": "x-request-id 请求头",
+          "val": ""
+        },
+        {
+          "id": "tf_apple_store_front",
+          "name": "🏬 Store Front",
+          "type": "text",
+          "desc": "x-apple-store-front 请求头",
+          "val": ""
+        },
+        {
+          "id": "tf_apple_ta_device",
+          "name": "📱 TA Device",
+          "type": "text",
+          "desc": "x-apple-ta-device 请求头",
+          "val": ""
+        },
+        {
+          "id": "tf_apple_amd_m",
+          "name": "💻 AMD M",
+          "type": "text",
+          "desc": "x-apple-amd-m 请求头",
+          "val": ""
+        },
+        {
+          "id": "tf_apple_device_model",
+          "name": "📟 Device Model",
+          "type": "text",
+          "desc": "x-apple-device-model 请求头",
+          "val": ""
+        },
+        {
+          "id": "tf_user_agent",
+          "name": "🌐 User Agent",
+          "type": "text",
+          "desc": "User-Agent 请求头",
+          "val": ""
+        },
+        {
+          "id": "tf_app_ids",
+          "name": "📦 应用 ID 列表",
+          "type": "textarea",
+          "desc": "格式：appid#status ，多个用英文逗号分隔。status=0 未加入，1 已加入。脚本会自动管理，通常无需手动修改。",
+          "val": "",
+          "autoGrow": true
+        },
+        {
+          "id": "tf_loon_count",
+          "name": "🔄 循环尝试次数",
+          "type": "number",
+          "desc": "每次定时任务内对同一个应用尝试加入的次数，默认 1",
+          "val": 1
+        },
+        {
+          "id": "tf_interval",
+          "name": "⏱️ 尝试间隔（秒）",
+          "type": "number",
+          "desc": "每次循环尝试之间的等待秒数，默认 0",
+          "val": 0
+        }
+      ],
+      "scripts": [
+        {
+          "name": "TestFlight 自动加入脚本",
+          "script": "https://raw.githubusercontent.com/Yuheng0101/X/main/Tasks/AutoJoinTF.js"
+        }
+      ],
+      "desc_html": [
+        "<div style='padding: 10px; background: #e7f3ff; border: 1px solid #b8daff; border-radius: 5px;'>",
+        "<p><strong>📌 使用说明</strong></p>",
+        "<ul>",
+        "<li>首次使用需开启 HTTP 请求抓取（配置详见脚本头部注释）</li>",
+        "<li>打开 TestFlight APP 或分享链接即可自动捕获参数</li>",
+        "<li>定时任务会自动监控并加入尚未参与的应用</li>",
+        "<li>大部分参数由脚本自动写入，无需手动干预</li>",
+        "<li>如需修改尝试次数或间隔，可在此调整对应数值</li>",
         "</ul>",
         "</div>"
       ]
