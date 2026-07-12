@@ -76,29 +76,30 @@ function extractStats(html) {
     return { points, continuous, total };
 }
 
-// 提取签到链接（改进版，避免硬编码偏移）
+// 提取签到链接（修复版：排除补签干扰，增加 FormHash 动态拼装兜底）
 function extractSignUrl(html, domain) {
-    // 模式1: fx_checkin 函数中的链接
-    let match = html.match(/function fx_checkin\(.*?\)\s*\{[^}]*?window\.location\.href\s*=\s*['"](.*?)['"]/);
-    if (match) return match[1];
-
-    // 模式2: 直接 href 的签到链接
-    match = html.match(/checkin.*?href\s*=\s*['"](.*?plugin\.php\?id=.*?checkin.*?)['"]/);
-    if (match) return match[1];
-
-    // 模式3: a 标签中的签到
-    match = html.match(/<a[^>]*?href\s*=\s*['"](.*?(?:checkin|sign).*?)['"][^>]*?>.*?签到.*?<\/a>/i);
-    if (match) return match[1];
-
-    // 模式4: 原脚本的硬编码提取（作为后备）
-    const signUrlMatch = html.match(/}function fx_checkin(.*?);/);
-    if (signUrlMatch) {
-        let url = signUrlMatch[1];
-        if (url.length > 50) {
-            url = url.substring(47, url.length - 2);
-            return url;
-        }
+    // 模式1: 优先精确匹配原本的常规签到链接（规范链接不带 resign 补签）
+    let match = html.match(/plugin\.php\?id=fx_checkin:checkin(&amp;|&)formhash=[0-9a-zA-Z]+/);
+    if (match) {
+        return match[0].replace(/&amp;/g, '&');
     }
+
+    // 模式2: 寻找带有 checkin 且排除 resign 关键字的 a 标签 href
+    match = html.match(/href\s*=\s*['"]([^'"]*?plugin\.php\?id=fx_checkin(?!:resign)[^'"]*?)['"]/);
+    if (match) {
+        return match[1].replace(/&amp;/g, '&');
+    }
+
+    // 模式3: 动态提取正确的 FORMHASH 强行拼接（Discuz 通用兜底策略）
+    let hashMatch = html.match(/formhash=([0-9a-zA-Z]{8})/);
+    if (!hashMatch) {
+        hashMatch = html.match(/var FX_FORMHASH\s*=\s*["']([0-9a-zA-Z]{8})["']/);
+    }
+    if (hashMatch) {
+        console.log(`💡 触发兜底逻辑，成功提取 FormHash: ${hashMatch[1]}`);
+        return `plugin.php?id=fx_checkin:checkin&formhash=${hashMatch[1]}`;
+    }
+
     return null;
 }
 
@@ -178,7 +179,7 @@ function request(options, throwError = true) {
             return; // 成功则退出
         } catch (err) {
             lastError = err;
-            console.log(`❌ 域名 ${domain} 签到失败: ${err.message}`);
+            console.log(`❌ 域名 ${domain} 签到失败: ${err.message || err}`);
             continue;
         }
     }
@@ -253,7 +254,7 @@ async function performSignOnDomain(domain, cookie, expectedUsername) {
         timeout: 15000
     };
     const signResult = await request(signOptions);
-    if (signResult.includes('今日已签到') || signResult.includes('已经签到') || signResult.includes('签到成功')) {
+    if (signResult && (signResult.includes('今日已签到') || signResult.includes('已经签到') || signResult.includes('签到成功'))) {
         console.log('📝 签到完成');
     } else {
         console.log('✅ 签到请求已发送');
